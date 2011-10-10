@@ -1,0 +1,29 @@
+
+# VS generated files
+
+*.tlog
+*.obj
+*.ipch
+*.manifest
+*.pdb
+*.lastbuildstate
+*.idb
+*.plw
+*.rc
+*.res
+*.opensdf
+*.user
+Debug/*
+Release/*
+
+*.sdf
+*.suo
+*.csproj.user
+
+
+# misc files
+
+*.db
+*.patch
+*.log
+*.txt
