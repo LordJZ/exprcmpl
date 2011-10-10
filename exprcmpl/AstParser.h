@@ -16,7 +16,9 @@ enum AstTokens
     AST_TOKEN_EOF           = -3,
 };
 
-#define EOF (-1)
+#ifndef EOF
+# define EOF (-1)
+#endif
 
 class AstParser
 {
@@ -65,21 +67,19 @@ private:
             m_lastChar = GetChar();
 
         if (is_identifier_char(m_lastChar) && !is_digit_char(m_lastChar))
-        { // identifier: [a-zA-Z][a-zA-Z0-9]*
+        {
+            // identifier: [a-zA-Z][a-zA-Z0-9]*
             m_identifierLen = 0;
             m_identifierStr[m_identifierLen++] = char(m_lastChar);
             while (is_char(m_lastChar = GetChar()) && is_identifier_char(m_lastChar) && m_identifierLen < 128)
                 m_identifierStr[m_identifierLen++] = char(m_lastChar);
 
-            //if (m_identifierStr == "def") return new AstToken(AstTokens.DefineFunction);
-            //if (m_identifierStr == "extern") return new AstToken(AstTokens.ExternFunction);
-            //if (m_identifierStr == "namespace") return new AstToken(AstTokens.Namespace);
-            //if (m_identifierStr == "class") return new AstToken(AstTokens.Class);
             return AST_TOKEN_IDENTIFIER;
         }
 
         if (is_digit_char(m_lastChar) || (m_lastChar == '.' && is_digit_char(PeekChar())))
-        {   // Number: [0-9.]+
+        {
+            // Number: [0-9.]+
             m_numericValue = 0.0;
             bool places = false;
             double qplaces = 1.0;
@@ -114,9 +114,6 @@ private:
 
             return AST_TOKEN_NUMBER;
         }
-
-        //if (IsAtComment())
-        //    return EatComment();
 
         // Check for end of file.  Don't eat the EOF.
         if (m_lastChar == EOF)
@@ -298,7 +295,5 @@ public:
         return m_inputPos;
     }
 };
-
-#undef EOF
 
 #endif
