@@ -65,6 +65,7 @@ public:
 #endif
 
 #ifdef _ENABLE_EXPR_EMIT
+private:
     int CheckArgs(const uint8* args) const
     {
         int argc = 0;
@@ -207,31 +208,46 @@ public:
         return true;
     }
 
+    struct BuiltInFunct
+    {
+        const char* name;
+        int argc;
+        int(CallExpression::*handler)(ByteBuffer&, pIdentifierInfoCallback) const;
+    };
+
+    static const BuiltInFunct s_builtInFuncts[];
+
+    const BuiltInFunct* GetBuiltInFunct(bool* isOverloaded) const
+    {
+        const BuiltInFunct* funct = s_builtInFuncts;
+        while (funct->name)
+        {
+            if (!strcmp(funct->name, m_identifier))
+            {
+                if (isOverloaded)
+                    *isOverloaded = true;
+
+                if (m_argc == funct->argc)
+                    return funct;
+
+                break;
+            }
+
+            ++funct;
+        }
+
+        return NULL;
+    }
+
+public:
     virtual int Emit(ByteBuffer& buf, pIdentifierInfoCallback identifierInfoCallback) const
     {
         // check built-in functions
         bool isBuiltInOverload = false;
-#define BUILTIN_FUNC(NAME, ARGC, HANDLER)               \
-    else if (IsIdentName(NAME))                         \
-    {                                                   \
-        isBuiltInOverload = true;                       \
-        if (m_argc == ARGC)                             \
-            return HANDLER(buf, identifierInfoCallback);\
-    }
 
-        if (false);     // false = enable built-in functions
-                        // true = disable built-in functions
-        BUILTIN_FUNC("sin", 1, EmitSin)
-        BUILTIN_FUNC("cos", 1, EmitCos)
-        BUILTIN_FUNC("abs", 1, EmitAbs)
-        BUILTIN_FUNC("chs", 1, EmitChs)
-        BUILTIN_FUNC("tan", 1, EmitTan)
-        BUILTIN_FUNC("cot", 1, EmitCot)
-        BUILTIN_FUNC("sqrt", 1, EmitSqrt)
-        BUILTIN_FUNC("log2", 1, EmitLog2)
-        BUILTIN_FUNC("pi", 0, EmitPi)
-
-#undef BUILTIN_FUNC
+        const BuiltInFunct* f = GetBuiltInFunct(&isBuiltInOverload);
+        if (f)
+            return (this->*f->handler)(buf, identifierInfoCallback);
 
         Identifier ident;
         if (!identifierInfoCallback(m_identifier, m_identifierLen, &ident))
@@ -351,6 +367,20 @@ public:
         return info;
     }
 #endif
+};
+
+const CallExpression::BuiltInFunct CallExpression::s_builtInFuncts[] =
+{
+    { "sin", 1, &CallExpression::EmitSin },
+    { "cos", 1, &CallExpression::EmitCos },
+    { "abs", 1, &CallExpression::EmitAbs },
+    { "chs", 1, &CallExpression::EmitChs },
+    { "tan", 1, &CallExpression::EmitTan },
+    { "cot", 1, &CallExpression::EmitCot },
+    { "sqrt", 1, &CallExpression::EmitSqrt },
+    { "log2", 1, &CallExpression::EmitLog2 },
+    { "pi", 0, &CallExpression::EmitPi },
+    { NULL, 0, NULL }
 };
 
 
