@@ -4,11 +4,11 @@
 // Expression Compiler
 
 #if COMPILER == COMPILER_MICROSOFT && _MSC_VER >= 1600      // Maybe other compilers support this too
-#define STATIC_ASSERT(EXPR, ERROR) static_assert(EXPR, ERROR)
-#define CHECK_SIZE(TYPE, SIZE) STATIC_ASSERT(sizeof(TYPE) == SIZE, "Incorrect size of '" #TYPE "'.");
+# define STATIC_ASSERT(EXPR, ERROR) static_assert(EXPR, ERROR)
+# define CHECK_SIZE(TYPE, SIZE) STATIC_ASSERT(sizeof(TYPE) == SIZE, "Incorrect size of '" #TYPE "'.");
 #else
-#define STATIC_ASSERT(EXPR, ERROR)
-#define CHECK_SIZE(TYPE, SIZE)
+# define STATIC_ASSERT(EXPR, ERROR)
+# define CHECK_SIZE(TYPE, SIZE)
 #endif
 
 typedef signed char         int8;

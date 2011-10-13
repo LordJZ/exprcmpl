@@ -2,7 +2,7 @@
 #define _UTIL_H
 
 #define _USE_MATH_DEFINES
-#include <cmath>
+#include <cmath>            // fabs
 
 #include "exprcmpl.h"
 
@@ -16,7 +16,9 @@
 # include <Windows.h>
 #endif
 
-#define NULL 0
+#ifndef NULL
+# define NULL 0
+#endif
 
 inline bool is_char(int32 c) { return (uint32(c) & (uint32(-1) << 8)) == 0; }
 inline bool is_whitespace_char(int32 c) { return c == ' ' || c == '\t' || c == '\n' || c == '\r'; }
@@ -29,11 +31,6 @@ inline bool is_identifier_char(int32 c) { return is_letter_char(c) || is_digit_c
 inline bool eqdbl(double one, double two)
 {
     return fabs(one - two) < 0.000000001;
-}
-
-inline void memcopy(uint8* dst, const uint8* src, int len)
-{
-    memcpy(dst, src, len);
 }
 
 #endif
