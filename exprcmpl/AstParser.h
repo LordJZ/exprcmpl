@@ -154,7 +154,7 @@ private:
         {
             while (nArg < maxArgs)
             {
-                Expression* arg = ParseExpression();
+                Expression* arg = ParseExpression(true);
                 if (arg == NULL)
                     return NULL;
 
@@ -180,7 +180,7 @@ private:
     Expression* ParseParenExpr()
     {
         GetNextToken();  // eat (.
-        Expression* V = ParseExpression();
+        Expression* V = ParseExpression(true);
         if (V == NULL)
             return NULL;
 
@@ -195,9 +195,20 @@ private:
     ///   ::= identifierexpr
     ///   ::= numberexpr
     ///   ::= parenexpr
-    Expression* ParsePrimary()
+    Expression* ParsePrimary(bool allowPrefix)
     {
-        if (m_currentToken == AST_TOKEN_IDENTIFIER)
+        if (allowPrefix && m_currentToken == '-')
+        {
+            GetNextToken(); // Eat '-'.
+            Expression* expr = ParsePrimary(false);
+            if (!expr)
+                return NULL;
+
+            Expression** ptr = new Expression*[1];
+            ptr[0] = expr;
+            return new CallExpression("chs", 3, ptr, 1);
+        }
+        else if (m_currentToken == AST_TOKEN_IDENTIFIER)
             return ParseIdentifierExpr();
         else if (m_currentToken == AST_TOKEN_NUMBER)
             return ParseNumberExpr();
@@ -247,8 +258,8 @@ private:
             GetNextToken();  // eat binop
 
             // Parse the primary expression after the binary operator.
-            Expression* RHS = ParsePrimary();
-            if (RHS == NULL)
+            Expression* RHS = ParsePrimary(false);
+            if (!RHS)
                 return NULL;
 
             // If BinOp binds less tightly with RHS than the operator after RHS, let
@@ -257,7 +268,7 @@ private:
             if (TokPrec < NextPrec)
             {
                 RHS = ParseBinOpRHS(TokPrec + 1, RHS);
-                if (RHS == NULL)
+                if (!RHS)
                     return NULL;
             }
 
@@ -269,9 +280,9 @@ private:
     /// expression
     ///   ::= primary binoprhs
     ///
-    Expression* ParseExpression()
+    Expression* ParseExpression(bool allowPrefix)
     {
-        Expression* LHS = ParsePrimary();
+        Expression* LHS = ParsePrimary(allowPrefix);
         if (LHS == NULL)
             return NULL;
 
@@ -281,7 +292,7 @@ public:
     Expression* GetExpression()
     {
         GetNextToken();
-        return ParseExpression();
+        return ParseExpression(true);
     }
 
     int GetInputPos()
