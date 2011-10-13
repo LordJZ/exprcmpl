@@ -3,9 +3,24 @@
 
 #include "util.h"
 #include "Expression.h"
+#include "NumberExpression.h"
 
 class CallExpression : public Expression
 {
+    struct BuiltInFunct
+    {
+        const char* name;
+        int argc;
+        int(CallExpression::*handler)(ByteBuffer&, pIdentifierInfoCallback) const;
+        double(CallExpression::*folder)() const;
+    };
+
+    static const BuiltInFunct s_builtInFuncts[];
+
+    const BuiltInFunct* m_builtInFunct;
+    bool m_isBuiltInOverload;
+    MarshallingInfo m_info;
+
 public:
     CallExpression(const char* name, int nameLen, Expression const* const* args, int argc)
         : Expression()
@@ -18,6 +33,46 @@ public:
 
         m_args = args;
         m_argc = argc;
+
+        m_builtInFunct = NULL;
+        m_isBuiltInOverload = false;
+
+        const BuiltInFunct* funct = s_builtInFuncts;
+        while (funct->name)
+        {
+            if (!strcmp(funct->name, m_identifier))
+            {
+                m_isBuiltInOverload = true;
+
+                if (m_argc == funct->argc)
+                    m_builtInFunct = funct;
+
+                break;
+            }
+
+            ++funct;
+        }
+
+        m_info.Type = MARSHALLING_ST0;
+
+        if (m_builtInFunct)
+        {
+            bool ok = true;
+            for (int i = 0; i < m_argc; ++i)
+            {
+                if (m_args[i]->GetMarshallingInfo().Type != MARSHALLING_IMM)
+                {
+                    ok = false;
+                    break;
+                }
+            }
+
+            if (ok)
+            {
+                m_info.Type = MARSHALLING_IMM;
+                m_info.Imm = (this->*m_builtInFunct->folder)();
+            }
+        }
     }
 
 #ifdef _ENABLE_EXPR_TOSTRING
@@ -99,6 +154,11 @@ private:
         return buf.pos();
     }
 
+    double FoldSin() const
+    {
+        return sin(m_args[0]->GetMarshallingInfo().Imm);
+    }
+
     int EmitCos(ByteBuffer& buf, pIdentifierInfoCallback identifierInfoCallback) const
     {
         EXIT_ON_ERR(m_args[0]->Emit(buf, identifierInfoCallback));
@@ -108,6 +168,11 @@ private:
             return ERR_OUTPUT_BUFFER_TOO_SMALL;
 
         return buf.pos();
+    }
+
+    double FoldCos() const
+    {
+        return cos(m_args[0]->GetMarshallingInfo().Imm);
     }
 
     int EmitAbs(ByteBuffer& buf, pIdentifierInfoCallback identifierInfoCallback) const
@@ -121,6 +186,11 @@ private:
         return buf.pos();
     }
 
+    double FoldAbs() const
+    {
+        return fabs(m_args[0]->GetMarshallingInfo().Imm);
+    }
+
     int EmitChs(ByteBuffer& buf, pIdentifierInfoCallback identifierInfoCallback) const
     {
         EXIT_ON_ERR(m_args[0]->Emit(buf, identifierInfoCallback));
@@ -130,6 +200,11 @@ private:
             return ERR_OUTPUT_BUFFER_TOO_SMALL;
 
         return buf.pos();
+    }
+
+    double FoldChs() const
+    {
+        return -m_args[0]->GetMarshallingInfo().Imm;
     }
 
     int EmitTan(ByteBuffer& buf, pIdentifierInfoCallback identifierInfoCallback) const
@@ -145,6 +220,11 @@ private:
         return buf.pos();
     }
 
+    double FoldTan() const
+    {
+        return tan(m_args[0]->GetMarshallingInfo().Imm);
+    }
+
     int EmitCot(ByteBuffer& buf, pIdentifierInfoCallback identifierInfoCallback) const
     {
         EXIT_ON_ERR(m_args[0]->Emit(buf, identifierInfoCallback));
@@ -158,6 +238,11 @@ private:
         return buf.pos();
     }
 
+    double FoldCot() const
+    {
+        return 1.0/tan(m_args[0]->GetMarshallingInfo().Imm);
+    }
+
     int EmitSqrt(ByteBuffer& buf, pIdentifierInfoCallback identifierInfoCallback) const
     {
         EXIT_ON_ERR(m_args[0]->Emit(buf, identifierInfoCallback));
@@ -169,19 +254,9 @@ private:
         return buf.pos();
     }
 
-    int EmitLog2(ByteBuffer& buf, pIdentifierInfoCallback identifierInfoCallback) const
+    double FoldSqrt() const
     {
-        if (!buf.append_8(0xD9) ||      // fld1
-            !buf.append_8(0xE8))
-            return ERR_OUTPUT_BUFFER_TOO_SMALL;
-
-        EXIT_ON_ERR(m_args[0]->Emit(buf, identifierInfoCallback));
-
-        if (!buf.append_8(0xD9) ||      // fyl2x
-            !buf.append_8(0xF1))
-            return ERR_OUTPUT_BUFFER_TOO_SMALL;
-
-        return buf.pos();
+        return sqrt(m_args[0]->GetMarshallingInfo().Imm);
     }
 
     int EmitPi(ByteBuffer& buf, pIdentifierInfoCallback identifierInfoCallback) const
@@ -191,6 +266,11 @@ private:
             return ERR_OUTPUT_BUFFER_TOO_SMALL;
 
         return buf.pos();
+    }
+
+    double FoldPi() const
+    {
+        return M_PI;
     }
 
     template<int LEN>
@@ -208,50 +288,20 @@ private:
         return true;
     }
 
-    struct BuiltInFunct
-    {
-        const char* name;
-        int argc;
-        int(CallExpression::*handler)(ByteBuffer&, pIdentifierInfoCallback) const;
-    };
-
-    static const BuiltInFunct s_builtInFuncts[];
-
-    const BuiltInFunct* GetBuiltInFunct(bool* isOverloaded) const
-    {
-        const BuiltInFunct* funct = s_builtInFuncts;
-        while (funct->name)
-        {
-            if (!strcmp(funct->name, m_identifier))
-            {
-                if (isOverloaded)
-                    *isOverloaded = true;
-
-                if (m_argc == funct->argc)
-                    return funct;
-
-                break;
-            }
-
-            ++funct;
-        }
-
-        return NULL;
-    }
-
 public:
     virtual int Emit(ByteBuffer& buf, pIdentifierInfoCallback identifierInfoCallback) const
     {
-        // check built-in functions
-        bool isBuiltInOverload = false;
+        // check if the call foldable
+        if (m_info.Type == MARSHALLING_IMM)
+            return NumberExpression(m_info.Imm).Emit(buf, identifierInfoCallback);
 
-        const BuiltInFunct* f = GetBuiltInFunct(&isBuiltInOverload);
-        if (f)
-            return (this->*f->handler)(buf, identifierInfoCallback);
+        // check built-in functions
+        if (m_builtInFunct)
+            return (this->*m_builtInFunct->handler)(buf, identifierInfoCallback);
 
         Identifier ident;
         if (!identifierInfoCallback(m_identifier, m_identifierLen, &ident))
-            return !isBuiltInOverload ? ERR_UNKNOWN_IDENTIFIER : ERR_ARGC_DOESNT_MATCH;
+            return !m_isBuiltInOverload ? ERR_UNKNOWN_IDENTIFIER : ERR_ARGC_DOESNT_MATCH;
 
         if (ident.Type != IDENTIFIER_FUNC)
             return ERR_IDENTIFIER_MISUSE;
@@ -360,28 +410,22 @@ public:
 
     virtual MarshallingInfo GetMarshallingInfo() const
     {
-        MarshallingInfo info;
-
-        info.Type = MARSHALLING_ST0;
-
-        return info;
+        return m_info;
     }
 #endif
 };
 
 const CallExpression::BuiltInFunct CallExpression::s_builtInFuncts[] =
 {
-    { "sin", 1, &CallExpression::EmitSin },
-    { "cos", 1, &CallExpression::EmitCos },
-    { "abs", 1, &CallExpression::EmitAbs },
-    { "chs", 1, &CallExpression::EmitChs },
-    { "tan", 1, &CallExpression::EmitTan },
-    { "cot", 1, &CallExpression::EmitCot },
-    { "sqrt", 1, &CallExpression::EmitSqrt },
-    { "log2", 1, &CallExpression::EmitLog2 },
-    { "pi", 0, &CallExpression::EmitPi },
-    { NULL, 0, NULL }
+    { "sin", 1, &CallExpression::EmitSin, &CallExpression::FoldSin },
+    { "cos", 1, &CallExpression::EmitCos, &CallExpression::FoldCos },
+    { "abs", 1, &CallExpression::EmitAbs, &CallExpression::FoldAbs },
+    { "chs", 1, &CallExpression::EmitChs, &CallExpression::FoldChs },
+    { "tan", 1, &CallExpression::EmitTan, &CallExpression::FoldTan },
+    { "cot", 1, &CallExpression::EmitCot, &CallExpression::FoldCot },
+    { "sqrt", 1, &CallExpression::EmitSqrt, &CallExpression::FoldSqrt },
+    { "pi", 0, &CallExpression::EmitPi, &CallExpression::FoldPi },
+    { NULL, 0, NULL, NULL }
 };
-
 
 #endif
