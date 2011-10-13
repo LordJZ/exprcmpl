@@ -40,7 +40,7 @@ int printErr(const char* name, int res)
 int main(int argc, char** args)
 {
     char s[1024+1];
-    std::cin >> s;
+    gets_s(s);
 
     void* expr;
     int res = ParseExpression(s, 1024, &expr);
