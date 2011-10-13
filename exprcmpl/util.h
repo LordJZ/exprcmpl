@@ -13,7 +13,8 @@
 
 #ifdef _ENABLE_EXPR_TOSTRING
 # include <stdio.h>
-# include <Windows.h>
+# include <memory.h>
+# include <string.h>
 #endif
 
 #ifndef NULL

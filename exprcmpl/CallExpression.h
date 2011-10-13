@@ -273,21 +273,6 @@ private:
         return M_PI;
     }
 
-    template<int LEN>
-    inline bool IsIdentName(const char (&Name)[LEN]) const
-    {
-        if (m_identifierLen != LEN-1)
-            return false;
-
-        for (int i = 0; i < LEN-1; ++i)
-        {
-            if (m_identifier[i] != Name[i])
-                return false;
-        }
-
-        return true;
-    }
-
 public:
     virtual int Emit(ByteBuffer& buf, pIdentifierInfoCallback identifierInfoCallback) const
     {
