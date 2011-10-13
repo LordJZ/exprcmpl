@@ -16,7 +16,7 @@ public:
 #ifdef _ENABLE_EXPR_TOSTRING
     virtual int ToString(char* str, int len) const
     {
-        return sprintf_s(str, len, "%f", m_value);
+        return sprintf_s(str, len, "%.3f", m_value);
     }
 #endif
 

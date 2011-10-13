@@ -22,11 +22,7 @@ enum MarshallingType
 struct MarshallingInfo
 {
     MarshallingType Type;
-    union
-    {
-        double  Imm;            // MARSHALLING_IMM
-        //void*   Ptr;            // MARSHALLING_PR*
-    };
+    double Imm;                 // MARSHALLING_IMM
 };
 
 class Expression

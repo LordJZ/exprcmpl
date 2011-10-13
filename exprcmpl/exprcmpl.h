@@ -36,6 +36,7 @@ enum IdentifierType
 
 enum Error
 {
+    ERR_SUCCESS                 =  1,
     ERR_UNKNOWN                 =  0,
     ERR_INVALID_INPUT           = -1,       // Input variables are off
     ERR_COMPILATION_FAILED      = -2,       // Error compiling AST into machine code
@@ -46,8 +47,8 @@ enum Error
     ERR_IDENTIFIER_MISUSE       = -7,       // Variable is used like a function of vice-versa
     ERR_ARGC_DOESNT_MATCH       = -8,       // Number of passed arguments to a function is off
     ERR_UNKNOWN_OPERAND         = -9,       // [Internal Error]
-    ERR_ARG_TYPE_ERR            = -10,      // Argument of a func is of an unsupported type
-    ERR_RET_TYPE_ERR            = -11,      // Return type of a func is not supported
+    ERR_ARG_TYPE_ERR            =-10,       // Argument of a func is of an unsupported type
+    ERR_RET_TYPE_ERR            =-11,       // Return type of a func is not supported
     // other errors
 };
 
@@ -65,13 +66,53 @@ struct Identifier
 
 CHECK_SIZE(Identifier, 1+1+4+4);
 
-typedef int(*pIdentifierInfoCallback)(const char* identifier, int identifierLen, Identifier* info);
+typedef int(__stdcall *pIdentifierInfoCallback)(const char* identifier, int identifierLen, Identifier* info);
 
 extern "C"
 {
-    // > 0 = number of emitted bytes
+    // Parses an expression into AST.
+    // Args:
+    //  expr: pointer to expression in ASCII
+    //  expr_len: length of expr in bytes
+    //  exprPtr: pointer to pointer to parsed expression.
+    //           set if returned value is 1
+    //
+    // Returns:
+    //   1 = OK
     // <=0 = error
-    int __declspec(dllexport) __stdcall CompileExpression(const char* expr, int expr_len, uint8* output, int output_length, pIdentifierInfoCallback identifierInfoCallback);
+    int __declspec(dllexport) __stdcall ParseExpression(const char* expr, int expr_len, void** exprPtr);
+
+    // Prints the parsed expression.
+    // Args:
+    //  exprPtr: pointer to parsed expression
+    //  store: pointer to an array of bytes
+    //  store_len: length of store in bytes
+    //
+    // Returns:
+    //  >0 = number of stored ASCII characters
+    // <=0 = error
+    int __declspec(dllexport) __stdcall PrintExpression(const void* exprPtr, char* store, int store_len);
+
+    // Compiles the parsed expression into 80x86 machine code.
+    // Args:
+    //  exprPtr: pointer to parsed expression
+    //  output: pointer to an array of bytes
+    //  output_length: length of output in bytes
+    //  identifierInfoCallback: pointer to callback function
+    //
+    // Returns:
+    //  >0 = number of emitted bytes
+    // <=0 = error
+    int __declspec(dllexport) __stdcall CompileExpression(const void* exprPtr, uint8* output, int output_length, pIdentifierInfoCallback identifierInfoCallback);
+
+    // Releases the parsed expression.
+    // Args:
+    //  expr: pointer to parsed expression
+    //
+    // Returns:
+    //   1 = OK
+    // <=0 = error
+    int __declspec(dllexport) __stdcall ReleaseExpression(void* exprPtr);
 }
 
 #endif
