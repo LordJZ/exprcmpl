@@ -47,5 +47,7 @@ int main(int argc, char** args)
         f.close();
     }
 
+    std::cin >> s;
+
     return 0;
 }

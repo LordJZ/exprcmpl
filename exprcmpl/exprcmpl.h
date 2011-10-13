@@ -5,7 +5,7 @@
 
 #if COMPILER == COMPILER_MICROSOFT && _MSC_VER >= 1600      // Maybe other compilers support this too
 # define STATIC_ASSERT(EXPR, ERROR) static_assert(EXPR, ERROR)
-# define CHECK_SIZE(TYPE, SIZE) STATIC_ASSERT(sizeof(TYPE) == SIZE, "Incorrect size of '" #TYPE "'.");
+# define CHECK_SIZE(TYPE, SIZE) STATIC_ASSERT(sizeof(TYPE) == SIZE, "Incorrect size of '" #TYPE "'.")
 #else
 # define STATIC_ASSERT(EXPR, ERROR)
 # define CHECK_SIZE(TYPE, SIZE)
@@ -18,12 +18,12 @@ typedef unsigned short      uint16;
 typedef signed int          int32;
 typedef unsigned int        uint32;
 
-CHECK_SIZE(int8, 1)
-CHECK_SIZE(uint8, 1)
-CHECK_SIZE(int16, 2)
-CHECK_SIZE(uint16, 2)
-CHECK_SIZE(int32, 4)
-CHECK_SIZE(uint32, 4)
+CHECK_SIZE(int8, 1);
+CHECK_SIZE(uint8, 1);
+CHECK_SIZE(int16, 2);
+CHECK_SIZE(uint16, 2);
+CHECK_SIZE(int32, 4);
+CHECK_SIZE(uint32, 4);
 
 enum IdentifierType
 {

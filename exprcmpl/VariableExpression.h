@@ -10,7 +10,10 @@ public:
     VariableExpression(const char* name, int nameLen)
         : Expression()
     {
-        m_identifier = name;
+        char* ident = new char[nameLen+1];
+        memcpy(ident, name, nameLen);
+        ident[nameLen] = 0;
+        m_identifier = ident;
         m_identifierLen = nameLen;
     }
 

@@ -22,6 +22,7 @@ enum AstTokens
 
 class AstParser
 {
+    static const int MAX_IDENT_LEN = 128;
 
 public:
     AstParser(const char* str, int length)
@@ -38,7 +39,7 @@ private:
     int m_inputPos;
 
     int m_currentToken;
-    char m_identifierStr[128];
+    char m_identifierStr[MAX_IDENT_LEN];
     int m_identifierLen;
     double m_numericValue;
 
@@ -71,7 +72,7 @@ private:
             // identifier: [a-zA-Z][a-zA-Z0-9]*
             m_identifierLen = 0;
             m_identifierStr[m_identifierLen++] = char(m_lastChar);
-            while (is_char(m_lastChar = GetChar()) && is_identifier_char(m_lastChar) && m_identifierLen < 128)
+            while (is_char(m_lastChar = GetChar()) && is_identifier_char(m_lastChar) && m_identifierLen < MAX_IDENT_LEN)
                 m_identifierStr[m_identifierLen++] = char(m_lastChar);
 
             return AST_TOKEN_IDENTIFIER;
@@ -135,10 +136,9 @@ private:
     ///   ::= identifier '(' expression* ')'
     Expression* ParseIdentifierExpr()
     {
-        char* IdName = new char[m_identifierLen+1];
+        char IdName[MAX_IDENT_LEN];
         int IdLen = m_identifierLen;
         memcpy(IdName, m_identifierStr, IdLen);
-        IdName[IdLen] = 0;
 
         GetNextToken();  // eat identifier.
 
@@ -156,10 +156,7 @@ private:
             {
                 Expression* arg = ParseExpression();
                 if (arg == NULL)
-                {
-                    delete[] IdName;
                     return NULL;
-                }
 
                 args[nArg++] = arg;
 
@@ -167,10 +164,7 @@ private:
                     break;
 
                 if (m_currentToken != ',')
-                {
-                    delete[] IdName;
                     return NULL;
-                }
 
                 GetNextToken();
             }
