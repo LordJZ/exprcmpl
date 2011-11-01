@@ -81,8 +81,12 @@ public:
     virtual MarshallingInfo GetMarshallingInfo() const
     {
         MarshallingInfo ret;
+#ifdef _ENABLE_EXPR_FOLDING
         ret.Type = MARSHALLING_IMM;
         ret.Imm = m_value;
+#else
+        ret.Type = MARSHALLING_ST0;
+#endif
         return ret;
     }
 #endif

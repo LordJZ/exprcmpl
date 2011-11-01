@@ -10,6 +10,7 @@
 
 #define _ENABLE_EXPR_TOSTRING
 #define _ENABLE_EXPR_EMIT
+#define _ENABLE_EXPR_FOLDING
 
 #ifdef _ENABLE_EXPR_TOSTRING
 # include <stdio.h>

@@ -59,6 +59,7 @@ public:
         MarshallingInfo linfo = m_lhs->GetMarshallingInfo();
         MarshallingInfo rinfo = m_rhs->GetMarshallingInfo();
 
+#ifdef _ENABLE_EXPR_FOLDING
         if (linfo.Type == MARSHALLING_IMM &&
             rinfo.Type == MARSHALLING_IMM)
         {
@@ -70,6 +71,7 @@ public:
             return ERR_IMM_BINARY_COMPUTE_ERR;
         }
         else
+#endif
         {
             EXIT_ON_ERR(m_lhs->Emit(buf, identifierInfoCallback));
             EXIT_ON_ERR(m_rhs->Emit(buf, identifierInfoCallback));
@@ -103,6 +105,7 @@ public:
         return buf.pos();
     }
 
+#ifdef _ENABLE_EXPR_FOLDING
     bool compute(double& result) const
     {
         double one = m_lhs->GetMarshallingInfo().Imm;
@@ -118,6 +121,7 @@ public:
                 return false;
         }
     }
+#endif
 
     virtual MarshallingInfo GetMarshallingInfo() const
     {
@@ -125,6 +129,7 @@ public:
         MarshallingInfo linfo = m_lhs->GetMarshallingInfo();
         MarshallingInfo rinfo = m_rhs->GetMarshallingInfo();
 
+#ifdef _ENABLE_EXPR_FOLDING
         if (linfo.Type == MARSHALLING_IMM &&
             rinfo.Type == MARSHALLING_IMM)
         {
@@ -133,7 +138,10 @@ public:
             compute(info.Imm);
         }
         else
+#endif
+        {
             info.Type = MARSHALLING_ST0;
+        }
 
         return info;
     }

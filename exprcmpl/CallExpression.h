@@ -55,6 +55,7 @@ public:
 
         m_info.Type = MARSHALLING_ST0;
 
+#ifdef _ENABLE_EXPR_FOLDING
         if (m_builtInFunct)
         {
             bool ok = true;
@@ -73,6 +74,7 @@ public:
                 m_info.Imm = (this->*m_builtInFunct->folder)();
             }
         }
+#endif
     }
 
 #ifdef _ENABLE_EXPR_TOSTRING
@@ -276,9 +278,11 @@ private:
 public:
     virtual int Emit(ByteBuffer& buf, pIdentifierInfoCallback identifierInfoCallback) const
     {
+#ifdef _ENABLE_EXPR_FOLDING
         // check if the call foldable
         if (m_info.Type == MARSHALLING_IMM)
             return NumberExpression(m_info.Imm).Emit(buf, identifierInfoCallback);
+#endif
 
         // check built-in functions
         if (m_builtInFunct)
@@ -299,6 +303,7 @@ public:
         {
             const Expression* expr = m_args[i];
             MarshallingInfo einfo = expr->GetMarshallingInfo();
+#ifdef _ENABLE_EXPR_FOLDING
             if (einfo.Type == MARSHALLING_IMM)
             {
                 // push imm value to the stack
@@ -332,6 +337,7 @@ public:
                 }
             }
             else
+#endif
             {
                 EXIT_ON_ERR(expr->Emit(buf, identifierInfoCallback));
 
