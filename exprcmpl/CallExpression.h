@@ -213,8 +213,8 @@ private:
 
         if (!buf.append_8(0xD9) ||      // ftan
             !buf.append_8(0xF2) ||
-            !buf.append_8(0xD9) ||      // fincstp
-            !buf.append_8(0xF7))
+            !buf.append_8(0xDD) ||      // ffree st(0)
+            !buf.append_8(0xC0))
             return ERR_OUTPUT_BUFFER_TOO_SMALL;
 
         return buf.pos();
@@ -305,16 +305,16 @@ public:
                 switch (ident.func_argtypes[i])
                 {
                     case IDENTIFIER_FLOAT64:
-                        if (!buf.append_8(0x68) ||
+                        if (!buf.append_8(0x68) ||  // push imm32
                             !buf.append_32(*((uint32*)&einfo.Imm + 1)) ||
-                            !buf.append_8(0x68) ||
+                            !buf.append_8(0x68) ||  // push imm32
                             !buf.append_32(*((uint32*)&einfo.Imm + 0)))
                             return ERR_OUTPUT_BUFFER_TOO_SMALL;
                         break;
                     case IDENTIFIER_FLOAT32:
                     {
                         float val = float(einfo.Imm);
-                        if (!buf.append_8(0x68) ||
+                        if (!buf.append_8(0x68) ||  // push imm32
                             !buf.append_32(*(uint32*)&val))
                             return ERR_OUTPUT_BUFFER_TOO_SMALL;
                         break;
@@ -322,7 +322,7 @@ public:
                     case IDENTIFIER_INT32:
                     {
                         int32 val = int32(einfo.Imm);
-                        if (!buf.append_8(0x68) ||
+                        if (!buf.append_8(0x68) ||  // push imm32
                             !buf.append_32(*(uint32*)&val))
                             return ERR_OUTPUT_BUFFER_TOO_SMALL;
                         break;
@@ -335,7 +335,7 @@ public:
             {
                 EXIT_ON_ERR(expr->Emit(buf, identifierInfoCallback));
 
-                // push st0 to the stack and pop the stack
+                // push st0 to the stack and pop the x87 stack
                 switch (ident.func_argtypes[i])
                 {
                     case IDENTIFIER_FLOAT64:
