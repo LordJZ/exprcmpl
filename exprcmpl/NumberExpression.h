@@ -89,6 +89,11 @@ public:
 #endif
         return ret;
     }
+
+    virtual int GetExpressionTreeLength() const
+    {
+        return 1;
+    }
 #endif
 };
 

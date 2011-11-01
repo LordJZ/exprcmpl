@@ -403,6 +403,16 @@ public:
     {
         return m_info;
     }
+
+    virtual int GetExpressionTreeLength() const
+    {
+        int ret = 1;
+
+        for (int i = 0; i < m_argc; ++i)
+            ret += m_args[i]->GetExpressionTreeLength();
+
+        return ret;
+    }
 #endif
 };
 

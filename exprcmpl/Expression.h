@@ -76,6 +76,8 @@ public:
     virtual int Emit(ByteBuffer& buf, pIdentifierInfoCallback identifierInfoCallback) const = 0;
 
     virtual MarshallingInfo GetMarshallingInfo() const = 0;
+
+    virtual int GetExpressionTreeLength() const = 0;
 #endif
 };
 

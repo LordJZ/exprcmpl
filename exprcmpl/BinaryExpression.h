@@ -73,32 +73,55 @@ public:
         else
 #endif
         {
-            EXIT_ON_ERR(m_lhs->Emit(buf, identifierInfoCallback));
-            EXIT_ON_ERR(m_rhs->Emit(buf, identifierInfoCallback));
-
-            // Operation
-
-            switch (m_op)
+            if (m_rhs->GetExpressionTreeLength() > m_lhs->GetExpressionTreeLength())
             {
-                case '+':
-                    if (!buf.append_16(0xC1DE))
-                        return ERR_OUTPUT_BUFFER_TOO_SMALL;
-                    break;
-                case '-':
-                    if (!buf.append_16(0xE9DE))
-                        return ERR_OUTPUT_BUFFER_TOO_SMALL;
-                    break;
-                case '*':
-                    if (!buf.append_16(0xC9DE))
-                        return ERR_OUTPUT_BUFFER_TOO_SMALL;
-                    break;
-                case '/':
-                    if (!buf.append_16(0xF9DE))
-                        return ERR_OUTPUT_BUFFER_TOO_SMALL;
-                    break;
-                default:
-                    // Must never happen
-                    return ERR_UNKNOWN_OPERAND;
+                EXIT_ON_ERR(m_rhs->Emit(buf, identifierInfoCallback));
+                EXIT_ON_ERR(m_lhs->Emit(buf, identifierInfoCallback));
+
+                switch (m_op)
+                {
+                    case '+':
+                    case '*':
+                        goto _operation;
+                    case '-':
+                        if (!buf.append_16(0xE1DE)) // fsubrp
+                            return ERR_OUTPUT_BUFFER_TOO_SMALL;
+                        break;
+                    case '/':
+                        if (!buf.append_16(0xF1DE)) // fdivrp
+                            return ERR_OUTPUT_BUFFER_TOO_SMALL;
+                        break;
+                }
+            }
+            else
+            {
+                EXIT_ON_ERR(m_lhs->Emit(buf, identifierInfoCallback));
+                EXIT_ON_ERR(m_rhs->Emit(buf, identifierInfoCallback));
+
+                // Operation
+            _operation:
+                switch (m_op)
+                {
+                    case '+':
+                        if (!buf.append_16(0xC1DE))
+                            return ERR_OUTPUT_BUFFER_TOO_SMALL;
+                        break;
+                    case '-':
+                        if (!buf.append_16(0xE9DE))
+                            return ERR_OUTPUT_BUFFER_TOO_SMALL;
+                        break;
+                    case '*':
+                        if (!buf.append_16(0xC9DE))
+                            return ERR_OUTPUT_BUFFER_TOO_SMALL;
+                        break;
+                    case '/':
+                        if (!buf.append_16(0xF9DE))
+                            return ERR_OUTPUT_BUFFER_TOO_SMALL;
+                        break;
+                    default:
+                        // Must never happen
+                        return ERR_UNKNOWN_OPERAND;
+                }
             }
         }
 
@@ -144,6 +167,11 @@ public:
         }
 
         return info;
+    }
+
+    virtual int GetExpressionTreeLength() const
+    {
+        return m_lhs->GetExpressionTreeLength() + m_rhs->GetExpressionTreeLength();
     }
 #endif
 };

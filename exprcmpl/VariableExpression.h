@@ -73,6 +73,11 @@ public:
         info.Type = MARSHALLING_ST0;
         return info;
     }
+
+    virtual int GetExpressionTreeLength() const
+    {
+        return 1;
+    }
 #endif
 };
 
