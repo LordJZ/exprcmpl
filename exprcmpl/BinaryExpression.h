@@ -82,6 +82,7 @@ public:
                 {
                     case '+':
                     case '*':
+                    default:
                         goto _operation;
                     case '-':
                         if (!buf.append_16(0xE1DE)) // fsubrp
