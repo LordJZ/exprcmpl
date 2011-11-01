@@ -10,15 +10,12 @@
 
 enum MarshallingType
 {
-    MARSHALLING_IMM = 0,        // immediate double value
-    MARSHALLING_PTR,            // value in memory
-    MARSHALLING_STI,            // 32-bit integer value ontop of the stack
-    MARSHALLING_STF,            // 32-bit float value ontop of the stack
-    MARSHALLING_STD,            // 64-bit float value ontop of the stack
-    MARSHALLING_ST0,            // float value ontop of the x87 stack
-    MARSHALLING_EAX,            // 32-bit integer value is in eax
+    MARSHALLING_ST0 = 0,        // Floating point value ontop of the x87 stack.
+    MARSHALLING_IMM,            // Immediate double precision floating point value.
 };
 
+// Defines an additional way (with the default of MARSHALLING_ST0)
+// of marshalling of the return value of an expression.
 struct MarshallingInfo
 {
     MarshallingType Type;

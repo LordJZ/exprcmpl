@@ -68,8 +68,9 @@ public:
 
     virtual MarshallingInfo GetMarshallingInfo() const
     {
+        // Actually we can support pointer to the variable.
         MarshallingInfo info;
-        info.Type = MARSHALLING_PTR;
+        info.Type = MARSHALLING_ST0;
         return info;
     }
 #endif
